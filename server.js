@@ -2,6 +2,7 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 const mongoose = require("mongoose");
+const jwt_middleware = require('express-jwt');
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const UserModel = require("./model/userModel");
@@ -9,11 +10,15 @@ const UserModel = require("./model/userModel");
 app.use(cors());
 app.use(express.json());
 
+const port = 1337 || process.env.PORT
+
 mongoose
   .connect(
     "mongodb+srv://LeadingDot:LeadingDothumai@cluster0.35vxia3.mongodb.net/Users?retryWrites=true&w=majority"
   )
-  .then(console.log("db connected"));
+  .then(console.log("DB CONNECTED"));
+
+
 
 app.post("/api/register", async (req, res) => {
   console.log(req.body);
@@ -26,14 +31,26 @@ app.post("/api/register", async (req, res) => {
     };
     const newUser = new UserModel(user);
     await newUser.save();
-
-    // res.json(user);
-
     res.json({ status: "ok" });
   } catch (err) {
     res.json({ status: "error", error: "Duplicate email" });
   }
 });
+
+
+
+
+app.post("/api/mehdi" ,async (req,res)=>{
+  console.log(req.body);
+  res.json({
+    information : "ok i got ur name"
+  })
+})
+
+
+
+
+
 
 app.post("/api/login", async (req, res) => {
   const user = await UserModel.findOne({
@@ -68,5 +85,5 @@ app.post("/api/login", async (req, res) => {
 });
 
 app.listen(1337, () => {
-  console.log("Server started on 1337");
+  console.log(`\x1b[33m   Server started on ${port}  \x1b[0m`);
 });
