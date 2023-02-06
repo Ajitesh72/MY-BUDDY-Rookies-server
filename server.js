@@ -1,20 +1,25 @@
 const express = require("express");
-const app = express();
 const cors = require("cors");
 const mongoose = require("mongoose");
-const jwt_middleware = require('express-jwt');
+const authenticateJWT = require("./middleware/authJwt.js")
+const dotenv = require("dotenv")
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const UserModel = require("./model/userModel");
+dotenv.config()
 
+const app = express();
 app.use(cors());
 app.use(express.json());
 
+
 const port = 1337 || process.env.PORT
+
+
 
 mongoose
   .connect(
-    "mongodb+srv://LeadingDot:LeadingDothumai@cluster0.35vxia3.mongodb.net/Users?retryWrites=true&w=majority"
+    `mongodb+srv://${process.env.MongoUsername}:${process.env.MongoPassword}@cluster0.35vxia3.mongodb.net/Users?retryWrites=true&w=majority`
   )
   .then(console.log("DB CONNECTED"));
 
@@ -37,21 +42,6 @@ app.post("/api/register", async (req, res) => {
   }
 });
 
-
-
-
-app.post("/api/mehdi" ,async (req,res)=>{
-  console.log(req.body);
-  res.json({
-    information : "ok i got ur name"
-  })
-})
-
-
-
-
-
-
 app.post("/api/login", async (req, res) => {
   const user = await UserModel.findOne({
     email: req.body.email,
@@ -73,17 +63,30 @@ app.post("/api/login", async (req, res) => {
           name: user.name,
           email: user.email,
         },
-        "secret123"
+        process.env.Jwtsecretkey
       );
 
       return res.json({ status: "ok", user: token });
     } else {
       res.json({ status: "error", user: false });
-      // return res.json({ status: 'error', user: false })
     }
   }
 });
 
+
+app.use(authenticateJWT)
+
+
+app.post("/api/mehdi" ,async (req,res)=>{
+  console.log(req.body);
+  res.json({
+    information : "ok i got ur name"
+  })
+})
+
+
 app.listen(1337, () => {
   console.log(`\x1b[33m   Server started on ${port}  \x1b[0m`);
+  const sd = process.env.MEHDI_KEY
+  console.log(sd)
 });
