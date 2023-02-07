@@ -76,17 +76,33 @@ app.post("/api/login", async (req, res) => {
 
 app.use(authenticateJWT)
 
+//get and post request by mehdi
+
 
 app.post("/api/mehdi" ,async (req,res)=>{
   console.log(req.body);
   res.json({
-    information : "ok i got ur name"
+    information : "ok i got ur name",
+  })
+})
+app.get("/api/mehdigetData" ,async (req,res)=>{
+  console.log(req.body);
+  res.json({
+    // information : "ok i got ur name",
+    userData: req.user
+  })
+})
+
+// MAIN CODE
+
+app.get("/api/home/userData" ,async (req,res)=>{
+  res.json({
+    userData: req.user
   })
 })
 
 
 app.listen(1337, () => {
   console.log(`\x1b[33m   Server started on ${port}  \x1b[0m`);
-  const sd = process.env.MEHDI_KEY
-  console.log(sd)
+  
 });

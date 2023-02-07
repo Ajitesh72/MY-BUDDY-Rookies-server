@@ -9,10 +9,14 @@ const authenticateJWT = (req, res, next) => {
                 return res.sendStatus(403);
             }
             req.user = user;
+            // console.log(user)
             next();
+            // res.send(user)
+            // console.log(res.data)
         });
     } else {
         res.sendStatus(401);
+        // console.log(res.data())
     }
   };
 
