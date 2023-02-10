@@ -54,9 +54,19 @@ app.post("/api/register", async (req, res) => {
 });
 
 app.post("/api/login", async (req, res) => {
-  const user = await UserModel.findOne({
-    email: req.body.email,
-  });
+  console.log(req.body.role)
+  var user;
+  if(req.body.role==="JOB")
+  {
+    user = await WorkerModel.findOne({
+      email: req.body.email,
+    });
+  }
+  else{
+     user = await  clientModel.findOne({
+      email: req.body.email,
+    });
+  }
   console.log(user);
   if (!user) {
     res.json({ status: "error", error: "Invalid Login" });
