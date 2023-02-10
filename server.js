@@ -5,7 +5,9 @@ const authenticateJWT = require("./middleware/authJwt.js");
 const dotenv = require("dotenv");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-const UserModel = require("./model/userModel");
+// const UserModel = require("./model/userModel");
+const clientModel = require("./model/ClientModel");
+const WorkerModel = require("./model/WorkerModel");
 const secretKey =
   "sk_test_51MHWQrSA2zGpkJ04CaLFhfjwCp89K9iBaWUYtoUGRwbJSOWyo7CjRLQEilZ0VLVTxiEeFk4VykQITSoRfDSYVezF006bbYCgVT"; //secret key for stripe.js
 const stripe = require("stripe")(secretKey);
@@ -30,13 +32,23 @@ app.post("/api/register", async (req, res) => {
     const newPassword = await bcrypt.hash(req.body.password, 10);
     const user = {
       name: req.body.name,
+      role:req.body.role,
       email: req.body.Email,
       password: newPassword,
+      applicationStatus:"false"   //INITIALLY IT WILL BE FALSE THEN CHANGE IT TO TRUE OF ACCEPTED BY AJITESH OR MEHDI
     };
-    const newUser = new UserModel(user);
+    var newUser;
+    console.log(req.body.role.toUpperCase())
+    if(req.body.role.toUpperCase()==="JOB"){
+       newUser = new WorkerModel(user);
+    }
+    else{
+      newUser = new clientModel(user);
+    }
     await newUser.save();
     res.json({ status: "ok" });
   } catch (err) {
+    console.log(err)
     res.json({ status: "error", error: "Duplicate email" });
   }
 });
