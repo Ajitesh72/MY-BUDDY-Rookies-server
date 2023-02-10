@@ -3,16 +3,17 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const authenticateJWT = require("./middleware/authJwt.js");
 const dotenv = require("dotenv");
+const fs = require("fs");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
-// const UserModel = require("./model/userModel");
 const clientModel = require("./model/ClientModel");
 const WorkerModel = require("./model/WorkerModel");
 const AdminModel =require("./model/AdminModel")
-const secretKey =
-  "sk_test_51MHWQrSA2zGpkJ04CaLFhfjwCp89K9iBaWUYtoUGRwbJSOWyo7CjRLQEilZ0VLVTxiEeFk4VykQITSoRfDSYVezF006bbYCgVT"; //secret key for stripe.js
+const WorkerSample = require("./model/WorkerSample");
+const secretKey = "sk_test_51MHWQrSA2zGpkJ04CaLFhfjwCp89K9iBaWUYtoUGRwbJSOWyo7CjRLQEilZ0VLVTxiEeFk4VykQITSoRfDSYVezF006bbYCgVT"; //secret key for stripe.js
 const stripe = require("stripe")(secretKey);
 const nodemailer = require("nodemailer");
+const multer = require("multer");
 dotenv.config();
 
 const app = express();
@@ -222,6 +223,58 @@ app.get("/api/home/userData", async (req, res) => {
     userData: req.user,
   });
 });
+
+
+
+
+// UPLOADING WORKER DATA TO MONGO DB
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads");
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  },
+});
+
+const upload = multer({ storage: storage });
+
+app.post("/api/uploadWorkerImg", upload.single("testImage"), (req, res) => {
+  const worker =  WorkerSample({
+    email: Math.floor(Math.random() * 1000),
+    name: req.body.name,
+    image: {
+      data: fs.readFileSync("uploads/" + req.file.filename),
+      contentType: "image/png",
+    },
+  });
+  worker
+    .save()
+    .then((res) => {
+      console.log("image is saved");
+    })
+    .catch((err) => {
+      console.log(err, "error has occur");
+      res.send('EROOR')
+    });
+    res.send('image is saved')
+});
+
+
+app.get("/api/getWorkers",(req,res)=>{
+  async function workerquery (){
+    const allWorker = await WorkerSample.find()
+    console.log("got the query req for all workers")
+    res.send(allWorker)
+  }
+  workerquery()
+})
+
+
+
+
+
 
 app.listen(1337, () => {
   console.log(`\x1b[33m   Server started on ${port}  \x1b[0m`);
