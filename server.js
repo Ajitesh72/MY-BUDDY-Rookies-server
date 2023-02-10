@@ -8,6 +8,7 @@ const bcrypt = require("bcryptjs");
 // const UserModel = require("./model/userModel");
 const clientModel = require("./model/ClientModel");
 const WorkerModel = require("./model/WorkerModel");
+const AdminModel =require("./model/AdminModel")
 const secretKey =
   "sk_test_51MHWQrSA2zGpkJ04CaLFhfjwCp89K9iBaWUYtoUGRwbJSOWyo7CjRLQEilZ0VLVTxiEeFk4VykQITSoRfDSYVezF006bbYCgVT"; //secret key for stripe.js
 const stripe = require("stripe")(secretKey);
@@ -93,6 +94,42 @@ app.post("/api/login", async (req, res) => {
     }
   }
 });
+
+//ADMIN LOGIN
+app.post("/api/adminlogin", async (req, res) => {
+  console.log(req.body.email)
+    const user = await AdminModel.findOne({
+      email: req.body.email,
+    });
+  
+  if (!user) {
+    console.log("email nhi mila admin ka")
+    res.json({ status: "error", error: "Invalid Login" });
+  }
+  console.log("adad");
+  if (user) {
+    var isPasswordValid=false;
+    if(req.body.password===user.password){
+      isPasswordValid=true;
+    }
+
+    if (isPasswordValid) {
+      console.log("yaha aa")
+      const token = jwt.sign(
+        {
+          name: user.name,
+          email: user.email,
+        },
+        process.env.Jwtsecretkey
+      );
+
+      return res.json({ status: "ok", user: token });
+    } else {
+      res.json({ status: "error", user: false });
+    }
+  }
+});
+
 
 app.use(authenticateJWT);
 
