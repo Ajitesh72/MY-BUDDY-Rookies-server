@@ -3,6 +3,7 @@ const cors = require("cors");
 const mongoose = require("mongoose");
 const authenticateJWT = require("./middleware/authJwt.js");
 const dotenv = require("dotenv");
+const fs = require("fs");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const clientModel = require("./model/ClientModel");
@@ -179,44 +180,37 @@ app.get("/api/home/userData", async (req, res) => {
 
 // UPLOADING WORKER DATA TO MONGO DB
 
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "uploads");
+  },
+  filename: (req, file, cb) => {
+    cb(null, file.originalname);
+  },
+});
 
-app.post("/api/uploadWorkerImg",(req,res)=>{
-  const Storage = multer.diskStorage(
-    {
-      destination: (req, file, cb) => {
-        cb(null, "upload");
-      },
-      filename:(req,file,cb)=>{
-        cb(null,file.originalname)
-      }
-    }
-  )
-  const upload = multer(
-    {
-      storage:Storage
-    }
-  ).single("testimage")
+const upload = multer({ storage: storage });
 
-  upload(req,res,(err)=>{
-    if(err){
-      console.log(err)
-    }
-    else{
-      const newWorker = new WorkerSample({
-        email: Math.floor(Math.random() * 1000),
-        name : req.body.name,
-        image:{
-          data:req.file.filename,
-          contentType:'image/png'
-        }
-      })
-      newWorker
-      .save()
-      .then(()=>res.send("uploaded to mongo"))
-      .catch((err)=>console.log(err))
-    }
-  })
-})
+app.post("/api/uploadWorkerImg", upload.single("testImage"), (req, res) => {
+  const worker =  WorkerSample({
+    email: Math.floor(Math.random() * 1000),
+    name: req.body.name,
+    image: {
+      data: fs.readFileSync("uploads/" + req.file.filename),
+      contentType: "image/png",
+    },
+  });
+  worker
+    .save()
+    .then((res) => {
+      console.log("image is saved");
+    })
+    .catch((err) => {
+      console.log(err, "error has occur");
+      res.send('EROOR')
+    });
+    res.send('image is saved')
+});
 
 
 app.get("/api/getWorkers",(req,res)=>{
