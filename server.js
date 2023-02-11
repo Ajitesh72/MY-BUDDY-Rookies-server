@@ -329,6 +329,25 @@ app.post("/api/admin/accept",(req,res)=>{
   }
 })
 
+app.post("/api/client/addWork",(req,res)=>{
+  // console.log(req.body.profession)
+  // console.log(req.user.email)
+  console.log("sdad")
+    clientModel.updateOne(
+      { email: req.user.email },
+      {
+        $set: {
+          professionRequired:req.body.profession,
+          jobRequired:req.body.jobDesc,
+          workerRequired:true
+        }
+      }
+    ).then((data) => { console.log(data) })
+  
+  
+  res.send({status:"ok"})
+})
+
 
 app.post("/api/admin/reject",(req,res)=>{
   console.log(req.body)
