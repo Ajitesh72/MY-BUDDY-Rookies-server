@@ -272,37 +272,16 @@ app.post("/api/uploadWorkerData", upload.single("file"), async (req, res) => {
       }
     ).then((data) => { console.log(data) })
   }
-
-  // const worker = WorkerModel({
-  // email: req.user.email,
-  //   role: req.user.role,
-  //   image: {
-  //     data: fs.readFileSync("uploads/" + req.file.filename),
-  //     contentType: "image/png",
-  //   },
-  //   name: JSON.parse(req.body.objectData).name,
-  //   applicationStatus: "false",
-  // });
-  // worker
-  //   .save()
-  //   .then((res) => {
-  //     console.log("image is saved");
-  //   })
-  //   .catch((err) => {
-  //     console.log(err, "error has occur");
-  //     res.send("EROOR");
-  //   });
-
   res.send("image is saved");
 });
 
 
 
-
- 
 app.get("/api/admin/getWorkers", (req, res) => {
   async function workerquery() {
-    const allWorker = await WorkerModel.find();
+    const allWorker = await WorkerModel.find(
+      {requestStatus: true}
+      );
     console.log("got the query req for all workers");
     res.send(allWorker);
   }
@@ -313,12 +292,70 @@ app.get("/api/admin/getWorkers", (req, res) => {
 
 app.get("/api/admin/getClients", (req, res) => {
   async function clientquery() {
-    const allClient = await clientModel.find();
+    const allClient = await clientModel.find(
+      {requestStatus: true}
+      );
     console.log("got the query req for all Clients");
     res.send(allClient);
   }
   clientquery();
 });
+
+
+app.post("/api/admin/accept",(req,res)=>{
+  console.log(req.body)
+  console.log(req.user)
+  if(req.body.role == "JOB"){
+    WorkerModel.updateOne(
+      { email: req.body.personEmail },
+      {
+        $set: {
+          applicationStatus: true,
+          requestStatus:false
+        }
+      }
+    ).then((data) => { console.log(data) })
+  }
+  else{
+    clientModel.updateOne(
+      { email: req.body.personEmail },
+      {
+        $set: {
+          applicationStatus: true,
+          requestStatus:false
+        }
+      }
+    ).then((data) => { console.log(data) })
+  }
+})
+
+
+app.post("/api/admin/reject",(req,res)=>{
+  console.log(req.body)
+  console.log(req.user)
+  if(req.body.role == "JOB"){
+    WorkerModel.updateOne(
+      { email: req.body.personEmail },
+      {
+        $set: {
+          applicationStatus: false,
+          requestStatus:false
+        }
+      }
+    ).then((data) => { console.log(data) })
+  }
+  else{
+    clientModel.updateOne(
+      { email: req.body.personEmail },
+      {
+        $set: {
+          applicationStatus: false,
+          requestStatus:false
+        }
+      }
+    ).then((data) => { console.log(data) })
+  }
+})
 
 
 

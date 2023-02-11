@@ -10,7 +10,11 @@ const ClientModel = new mongoose.Schema(
         role:{type:String,required:true},
 		profession:{type:String},
 		about:{type:String},
-		image : { data:Buffer, contentType : String}
+		image : { data:Buffer, contentType : String},
+		// NEECHE WALA IS APPLICABLE ONLY IF APPLICATION STATUS OF CLIENT IS ACCEPTED
+		professionRequired:{type:String},
+		jobRequired:{type:String},
+		workerRequired:{type:Boolean}
 	},
 	{ collection: 'Client-data' }
 )
