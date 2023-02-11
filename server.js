@@ -299,36 +299,6 @@ app.post("/api/uploadWorkerData", upload.single("file"), async (req, res) => {
 
 
 
-app.get("/api/admin/getWorker", async(req, res) => {
-  // async function workerquery() {
-  //   const allWorker = await WorkerModel.find();
-  //   console.log("got the query req for all workers");
-  //   res.send(allWorker);
-  // }
-  // db.staff().find({staff_id:3})
- const sendWorker= await WorkerModel.find(
-    { requestStatus: true },
-    
-  )
-  console.log("api/admin/getWorker vaale api mei",sendWorker)
-    res.json(sendWorker)
-}
-  );
-app.get("/api/admin/getClient", async(req, res) => {
-  // async function workerquery() {
-  //   const allWorker = await WorkerModel.find();
-  //   console.log("got the query req for all workers");
-  //   res.send(allWorker);
-  // }
-  // db.staff().find({staff_id:3})
- const sendClient= await clientModel.find(
-    { requestStatus: true },
-    
-  )
-  console.log("api/admin/getClient vaale api mei",sendClient)
-    res.json(sendClient)
-}
-  );
  
 app.get("/api/admin/getWorkers", (req, res) => {
   async function workerquery() {
