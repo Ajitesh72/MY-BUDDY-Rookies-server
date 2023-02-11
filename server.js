@@ -113,7 +113,6 @@ app.post("/api/adminlogin", async (req, res) => {
     console.log("email nhi mila admin ka");
     res.json({ status: "error", error: "Invalid Login" });
   }
-  console.log("adad");
   if (user) {
     var isPasswordValid = false;
     if (req.body.password === user.password) {
@@ -237,7 +236,7 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 app.post("/api/uploadWorkerData", upload.single("file"), async (req, res) => {
-  console.log("user is", JSON.parse(req.body.objectData));
+  // console.log("user is", JSON.parse(req.body.objectData));
 
   // BELOW CODE IS VERY IMPORTANT
 
@@ -305,8 +304,6 @@ app.get("/api/admin/getClients", (req, res) => {
 
 
 app.post("/api/admin/accept", (req, res) => {
-  console.log(req.body)
-  console.log(req.user)
   if (req.body.role == "JOB") {
     WorkerModel.updateOne(
       { email: req.body.personEmail },
@@ -429,6 +426,18 @@ app.post("/api/WorkRequestAccepted", async (req, res) => {
     }
   });
 });
+
+app.post("/api/getClientbyEmail" , (req,res)=>{
+  async function clientquery() {
+    console.log(req.body.email)
+    const theClient = await clientModel.find(
+      { email : req.body.email }
+    );
+    console.log("got the query to find Clients");
+    res.send(theClient[0])
+  }
+  clientquery();
+})
 
 
 app.listen(1337, () => {
