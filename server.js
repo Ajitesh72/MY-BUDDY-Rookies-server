@@ -8,9 +8,10 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const clientModel = require("./model/ClientModel");
 const WorkerModel = require("./model/WorkerModel");
-const AdminModel = require("./model/AdminModel")
+const AdminModel = require("./model/AdminModel");
 const WorkerSample = require("./model/WorkerSample");
-const secretKey = "sk_test_51MHWQrSA2zGpkJ04CaLFhfjwCp89K9iBaWUYtoUGRwbJSOWyo7CjRLQEilZ0VLVTxiEeFk4VykQITSoRfDSYVezF006bbYCgVT"; //secret key for stripe.js
+const secretKey =
+  "sk_test_51MHWQrSA2zGpkJ04CaLFhfjwCp89K9iBaWUYtoUGRwbJSOWyo7CjRLQEilZ0VLVTxiEeFk4VykQITSoRfDSYVezF006bbYCgVT"; //secret key for stripe.js
 const stripe = require("stripe")(secretKey);
 const nodemailer = require("nodemailer");
 const multer = require("multer");
@@ -23,11 +24,16 @@ app.use(express.json());
 
 const port = 1337 || process.env.PORT;
 
+const db=mongoose
+.connect(
+  `mongodb+srv://${process.env.MongoUsername}:${process.env.MongoPassword}@cluster0.35vxia3.mongodb.net/Users?retryWrites=true&w=majority`
+)
 mongoose
   .connect(
     `mongodb+srv://${process.env.MongoUsername}:${process.env.MongoPassword}@cluster0.35vxia3.mongodb.net/Users?retryWrites=true&w=majority`
   )
   .then(console.log("DB CONNECTED"));
+
 
 app.post("/api/register", async (req, res) => {
   console.log(req.body);
@@ -38,33 +44,32 @@ app.post("/api/register", async (req, res) => {
       role: req.body.role,
       email: req.body.Email,
       password: newPassword,
-      applicationStatus: "false"   //INITIALLY IT WILL BE FALSE THEN CHANGE IT TO TRUE OF ACCEPTED BY AJITESH OR MEHDI
+      requestStatus: false,
+      applicationStatus: false, //INITIALLY IT WILL BE FALSE THEN CHANGE IT TO TRUE OF ACCEPTED BY AJITESH OR MEHDI
     };
     var newUser;
-    console.log(req.body.role.toUpperCase())
+    console.log(req.body.role.toUpperCase());
     if (req.body.role.toUpperCase() === "JOB") {
       newUser = new WorkerModel(user);
-    }
-    else {
+    } else {
       newUser = new clientModel(user);
     }
     await newUser.save();
     res.json({ status: "ok" });
   } catch (err) {
-    console.log(err)
+    console.log(err);
     res.json({ status: "error", error: "Duplicate email" });
   }
 });
 
 app.post("/api/login", async (req, res) => {
-  console.log(req.body.role)
+  console.log(req.body.role);
   var user;
   if (req.body.role === "JOB") {
     user = await WorkerModel.findOne({
       email: req.body.email,
     });
-  }
-  else {
+  } else {
     user = await clientModel.findOne({
       email: req.body.email,
     });
@@ -85,7 +90,7 @@ app.post("/api/login", async (req, res) => {
         {
           name: user.name,
           email: user.email,
-          role: user.role
+          role: user.role,
         },
         process.env.Jwtsecretkey
       );
@@ -99,13 +104,13 @@ app.post("/api/login", async (req, res) => {
 
 //ADMIN LOGIN
 app.post("/api/adminlogin", async (req, res) => {
-  console.log(req.body.email)
+  console.log(req.body.email);
   const user = await AdminModel.findOne({
     email: req.body.email,
   });
 
   if (!user) {
-    console.log("email nhi mila admin ka")
+    console.log("email nhi mila admin ka");
     res.json({ status: "error", error: "Invalid Login" });
   }
   console.log("adad");
@@ -116,12 +121,12 @@ app.post("/api/adminlogin", async (req, res) => {
     }
 
     if (isPasswordValid) {
-      console.log("yaha aa")
+      console.log("yaha aa");
       const token = jwt.sign(
         {
           name: user.name,
           email: user.email,
-          role: user.role
+          role: user.role,
         },
         process.env.Jwtsecretkey
       );
@@ -133,11 +138,9 @@ app.post("/api/adminlogin", async (req, res) => {
   }
 });
 
-
 app.use(authenticateJWT);
 
 //get and post request by mehdi   and stripe.js premium
-
 
 app.get("/api/mehdigetData", async (req, res) => {
   console.log(req.body);
@@ -218,9 +221,6 @@ app.get("/api/home/userData", async (req, res) => {
   });
 });
 
-
-
-
 // UPLOADING WORKER DATA TO MONGO DB
 
 const storage = multer.diskStorage({
@@ -234,52 +234,74 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-app.post("/api/uploadWorkerData", upload.single("file"), (req, res) => {
-
-  console.log("user is ", req.user)
-  console.log(JSON.parse(req.body.objectData));
+app.post("/api/uploadWorkerData", upload.single("file"), async (req, res) => {
+  // console.log("user is adas ", req.user);
+  console.log("user is",JSON.parse(req.body.objectData));
 
   // BELOW CODE IS VERY IMPORTANT
-
-
-  const worker = WorkerModel({
-    // email: req.user.email,
-    email: Math.floor(Math.random() * 1000),
-    role: req.user.role,
-    image: {
-      data: fs.readFileSync("uploads/" + req.file.filename),
-      contentType: "image/png",
-    },
-    name: JSON.parse(req.body.objectData).name,
-    applicationStatus: "false",
-
-  });
-  worker
-    .save()
-    .then((res) => {
-      console.log("image is saved");
-    })
-    .catch((err) => {
-      console.log(err, "error has occur");
-      res.send('EROOR')
+  // var user;
+  if (req.user.role === "JOB") {
+    console.log("yaha1")
+    console.log(JSON.parse(req.body.objectData));
+    console.log("yaha2")
+    console.log(req.user.email)
+    console.log("yaha3")
+    // user = await WorkerModel.findOne({
+    //   email: req.body.email,
+    // });
+    // db.Worker-data.updateOne(
+      const collectionName="Worker-data"
+      // WorkerModel.findOneAndUpdate(
+      WorkerModel.findOneAndUpdate(
+      { email: req.user.email },
+      { $set: {  
+      //   "image": {
+      //   data: fs.readFileSync("uploads/" + req.file.filename),
+      //   contentType: "image/png",
+      // },
+      // "name": JSON.parse(req.body.objectData).name,
+      requestStatus: true, 
+    } 
+    }
+    )
+    // .then(console.log("image sent"));
+  } else {
+    user = await clientModel.findOne({
+      email: req.body.email,
     });
-  res.send('image is saved')
-});
+  }
 
+  // const worker = WorkerModel({
+  //   // email: req.user.email,
+  //   email: Math.floor(Math.random() * 1000),
+  //   role: req.user.role,
+  //   image: {
+  //     data: fs.readFileSync("uploads/" + req.file.filename),
+  //     contentType: "image/png",
+  //   },
+  //   name: JSON.parse(req.body.objectData).name,
+  //   applicationStatus: "false",
+  // });
+  // worker
+  //   .save()
+  //   .then((res) => {
+  //     console.log("image is saved");
+  //   })
+  //   .catch((err) => {
+  //     console.log(err, "error has occur");
+  //     res.send("EROOR");
+  //   });
+  res.send("image is saved");
+});
 
 app.get("/api/getWorkers", (req, res) => {
   async function workerquery() {
-    const allWorker = await WorkerModel.find()
-    console.log("got the query req for all workers")
-    res.send(allWorker)
+    const allWorker = await WorkerModel.find();
+    console.log("got the query req for all workers");
+    res.send(allWorker);
   }
-  workerquery()
-})
-
-
-
-
-
+  workerquery();
+});
 
 app.listen(1337, () => {
   console.log(`\x1b[33m   Server started on ${port}  \x1b[0m`);
