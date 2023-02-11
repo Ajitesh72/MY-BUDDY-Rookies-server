@@ -296,7 +296,7 @@ app.post("/api/uploadWorkerData", upload.single("file"), async (req, res) => {
   res.send("image is saved");
 });
 
-app.get("/api/getWorkers", (req, res) => {
+app.get("/api/admin/getWorkers", (req, res) => {
   async function workerquery() {
     const allWorker = await WorkerModel.find();
     console.log("got the query req for all workers");
@@ -304,6 +304,19 @@ app.get("/api/getWorkers", (req, res) => {
   }
   workerquery();
 });
+
+
+
+app.get("/api/admin/getClients", (req, res) => {
+  async function clientquery() {
+    const allClient = await clientModel.find();
+    console.log("got the query req for all Clients");
+    res.send(allClient);
+  }
+  clientquery();
+});
+
+
 
 app.listen(1337, () => {
   console.log(`\x1b[33m   Server started on ${port}  \x1b[0m`);
