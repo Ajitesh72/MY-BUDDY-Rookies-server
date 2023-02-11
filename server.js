@@ -8,12 +8,13 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const clientModel = require("./model/ClientModel");
 const WorkerModel = require("./model/WorkerModel");
-const AdminModel =require("./model/AdminModel")
+const AdminModel = require("./model/AdminModel")
 const WorkerSample = require("./model/WorkerSample");
 const secretKey = "sk_test_51MHWQrSA2zGpkJ04CaLFhfjwCp89K9iBaWUYtoUGRwbJSOWyo7CjRLQEilZ0VLVTxiEeFk4VykQITSoRfDSYVezF006bbYCgVT"; //secret key for stripe.js
 const stripe = require("stripe")(secretKey);
 const nodemailer = require("nodemailer");
 const multer = require("multer");
+const { Console } = require("console");
 dotenv.config();
 
 const app = express();
@@ -34,17 +35,17 @@ app.post("/api/register", async (req, res) => {
     const newPassword = await bcrypt.hash(req.body.password, 10);
     const user = {
       name: req.body.name,
-      role:req.body.role,
+      role: req.body.role,
       email: req.body.Email,
       password: newPassword,
-      applicationStatus:"false"   //INITIALLY IT WILL BE FALSE THEN CHANGE IT TO TRUE OF ACCEPTED BY AJITESH OR MEHDI
+      applicationStatus: "false"   //INITIALLY IT WILL BE FALSE THEN CHANGE IT TO TRUE OF ACCEPTED BY AJITESH OR MEHDI
     };
     var newUser;
     console.log(req.body.role.toUpperCase())
-    if(req.body.role.toUpperCase()==="JOB"){
-       newUser = new WorkerModel(user);
+    if (req.body.role.toUpperCase() === "JOB") {
+      newUser = new WorkerModel(user);
     }
-    else{
+    else {
       newUser = new clientModel(user);
     }
     await newUser.save();
@@ -58,14 +59,13 @@ app.post("/api/register", async (req, res) => {
 app.post("/api/login", async (req, res) => {
   console.log(req.body.role)
   var user;
-  if(req.body.role==="JOB")
-  {
+  if (req.body.role === "JOB") {
     user = await WorkerModel.findOne({
       email: req.body.email,
     });
   }
-  else{
-     user = await  clientModel.findOne({
+  else {
+    user = await clientModel.findOne({
       email: req.body.email,
     });
   }
@@ -85,7 +85,7 @@ app.post("/api/login", async (req, res) => {
         {
           name: user.name,
           email: user.email,
-          role:user.role
+          role: user.role
         },
         process.env.Jwtsecretkey
       );
@@ -100,19 +100,19 @@ app.post("/api/login", async (req, res) => {
 //ADMIN LOGIN
 app.post("/api/adminlogin", async (req, res) => {
   console.log(req.body.email)
-    const user = await AdminModel.findOne({
-      email: req.body.email,
-    });
-  
+  const user = await AdminModel.findOne({
+    email: req.body.email,
+  });
+
   if (!user) {
     console.log("email nhi mila admin ka")
     res.json({ status: "error", error: "Invalid Login" });
   }
   console.log("adad");
   if (user) {
-    var isPasswordValid=false;
-    if(req.body.password===user.password){
-      isPasswordValid=true;
+    var isPasswordValid = false;
+    if (req.body.password === user.password) {
+      isPasswordValid = true;
     }
 
     if (isPasswordValid) {
@@ -121,7 +121,7 @@ app.post("/api/adminlogin", async (req, res) => {
         {
           name: user.name,
           email: user.email,
-          role:user.role
+          role: user.role
         },
         process.env.Jwtsecretkey
       );
@@ -138,16 +138,10 @@ app.use(authenticateJWT);
 
 //get and post request by mehdi   and stripe.js premium
 
-app.post("/api/mehdi", async (req, res) => {
-  console.log(req.body);
-  res.json({
-    information: "ok i got ur name",
-  });
-});
+
 app.get("/api/mehdigetData", async (req, res) => {
   console.log(req.body);
   res.json({
-    // information : "ok i got ur name",
     userData: req.user,
   });
 });
@@ -240,14 +234,25 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage: storage });
 
-app.post("/api/uploadWorkerImg", upload.single("testImage"), (req, res) => {
-  const worker =  WorkerSample({
+app.post("/api/uploadWorkerData", upload.single("file"), (req, res) => {
+
+  console.log("user is ", req.user)
+  console.log(JSON.parse(req.body.objectData.name));
+
+  // BELOW CODE IS VERY IMPORTANT
+
+
+  const worker = WorkerModel({
+    // email: req.user.email,
     email: Math.floor(Math.random() * 1000),
-    name: req.body.name,
+    role: req.user.role,
     image: {
       data: fs.readFileSync("uploads/" + req.file.filename),
       contentType: "image/png",
     },
+    name: req.body.objectData.name,
+    applicationStatus: false,
+
   });
   worker
     .save()
@@ -258,13 +263,13 @@ app.post("/api/uploadWorkerImg", upload.single("testImage"), (req, res) => {
       console.log(err, "error has occur");
       res.send('EROOR')
     });
-    res.send('image is saved')
+  res.send('image is saved')
 });
 
 
-app.get("/api/getWorkers",(req,res)=>{
-  async function workerquery (){
-    const allWorker = await WorkerSample.find()
+app.get("/api/getWorkers", (req, res) => {
+  async function workerquery() {
+    const allWorker = await WorkerModel.find()
     console.log("got the query req for all workers")
     res.send(allWorker)
   }
