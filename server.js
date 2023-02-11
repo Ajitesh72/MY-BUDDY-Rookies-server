@@ -24,10 +24,10 @@ app.use(express.json());
 
 const port = 1337 || process.env.PORT;
 
-const db=mongoose
-.connect(
-  `mongodb+srv://${process.env.MongoUsername}:${process.env.MongoPassword}@cluster0.35vxia3.mongodb.net/Users?retryWrites=true&w=majority`
-)
+const db = mongoose
+  .connect(
+    `mongodb+srv://${process.env.MongoUsername}:${process.env.MongoPassword}@cluster0.35vxia3.mongodb.net/Users?retryWrites=true&w=majority`
+  )
 mongoose
   .connect(
     `mongodb+srv://${process.env.MongoUsername}:${process.env.MongoPassword}@cluster0.35vxia3.mongodb.net/Users?retryWrites=true&w=majority`
@@ -235,45 +235,46 @@ const storage = multer.diskStorage({
 const upload = multer({ storage: storage });
 
 app.post("/api/uploadWorkerData", upload.single("file"), async (req, res) => {
-  // console.log("user is adas ", req.user);
-  console.log("user is",JSON.parse(req.body.objectData));
+  console.log("user is", JSON.parse(req.body.objectData));
 
   // BELOW CODE IS VERY IMPORTANT
-  // var user;
+
   if (req.user.role === "JOB") {
-    console.log("yaha1")
-    console.log(JSON.parse(req.body.objectData));
-    console.log("yaha2")
-    console.log(req.user.email)
-    console.log("yaha3")
-    // user = await WorkerModel.findOne({
-    //   email: req.body.email,
-    // });
-    // db.Worker-data.updateOne(
-      const collectionName="Worker-data"
-      // WorkerModel.findOneAndUpdate(
-      WorkerModel.findOneAndUpdate(
+    WorkerModel.updateOne(
       { email: req.user.email },
-      { $set: {  
-      //   "image": {
-      //   data: fs.readFileSync("uploads/" + req.file.filename),
-      //   contentType: "image/png",
-      // },
-      // "name": JSON.parse(req.body.objectData).name,
-      requestStatus: true, 
-    } 
-    }
-    )
-    // .then(console.log("image sent"));
+      {
+        $set: {
+          "image": {
+            data: fs.readFileSync("uploads/" + req.file.filename),
+            contentType: "image/png",
+          },
+          "name": JSON.parse(req.body.objectData).name,
+          requestStatus: true,
+          profession: JSON.parse(req.body.objectData).profession,
+          about: JSON.parse(req.body.objectData).about
+        }
+      }
+    ).then((data) => { console.log(data) })
   } else {
-    user = await clientModel.findOne({
-      email: req.body.email,
-    });
+    clientModel.updateOne(
+      { email: req.user.email },
+      {
+        $set: {
+          "image": {
+            data: fs.readFileSync("uploads/" + req.file.filename),
+            contentType: "image/png",
+          },
+          "name": JSON.parse(req.body.objectData).name,
+          requestStatus: true,
+          profession: JSON.parse(req.body.objectData).profession,
+          about: JSON.parse(req.body.objectData).about
+        }
+      }
+    ).then((data) => { console.log(data) })
   }
 
   // const worker = WorkerModel({
-  //   // email: req.user.email,
-  //   email: Math.floor(Math.random() * 1000),
+  // email: req.user.email,
   //   role: req.user.role,
   //   image: {
   //     data: fs.readFileSync("uploads/" + req.file.filename),
@@ -291,6 +292,7 @@ app.post("/api/uploadWorkerData", upload.single("file"), async (req, res) => {
   //     console.log(err, "error has occur");
   //     res.send("EROOR");
   //   });
+
   res.send("image is saved");
 });
 
