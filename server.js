@@ -148,6 +148,7 @@ app.get("/api/mehdigetData", async (req, res) => {
     userData: req.user,
   });
 });
+
 app.post("/create-checkout-session", async (req, res) => {
   console.log(req.user);
   const session = await stripe.checkout.sessions.create({
@@ -189,6 +190,7 @@ app.post("/sendEmail", async (req, res) => {
   const mailOptions = {
     from: "dubeyajitesh07@gmail.com",
     to: req.user.email,
+    // to:["mohdmehdi2003@gmail.com","mehdimena12@yahoo.com"],
     subject: "CONFIRMATION MAIL FOR SCHEDULED APPOINTMENT",
     text: "Thank you for choosing us",
     html: '<b>THANK YOU FOR TRUSTING US</b>,<br/><hr/> <img src="cid:unique@kreata.ee"/> <br/><p>REPLY TO THIS MESSAGE FOR ANY QUERIES.</p><p>We will try to reach out to you as soon as possible</p>',
@@ -280,8 +282,8 @@ app.post("/api/uploadWorkerData", upload.single("file"), async (req, res) => {
 app.get("/api/admin/getWorkers", (req, res) => {
   async function workerquery() {
     const allWorker = await WorkerModel.find(
-      {requestStatus: true}
-      );
+      { requestStatus: true }
+    );
     console.log("got the query req for all workers");
     res.send(allWorker);
   }
@@ -293,8 +295,8 @@ app.get("/api/admin/getWorkers", (req, res) => {
 app.get("/api/admin/getClients", (req, res) => {
   async function clientquery() {
     const allClient = await clientModel.find(
-      {requestStatus: true}
-      );
+      { requestStatus: true }
+    );
     console.log("got the query req for all Clients");
     res.send(allClient);
   }
@@ -302,80 +304,131 @@ app.get("/api/admin/getClients", (req, res) => {
 });
 
 
-app.post("/api/admin/accept",(req,res)=>{
+app.post("/api/admin/accept", (req, res) => {
   console.log(req.body)
   console.log(req.user)
-  if(req.body.role == "JOB"){
+  if (req.body.role == "JOB") {
     WorkerModel.updateOne(
       { email: req.body.personEmail },
       {
         $set: {
           applicationStatus: true,
-          requestStatus:false
+          requestStatus: false
         }
       }
     ).then((data) => { console.log(data) })
   }
-  else{
+  else {
     clientModel.updateOne(
       { email: req.body.personEmail },
       {
         $set: {
           applicationStatus: true,
-          requestStatus:false
+          requestStatus: false
         }
       }
     ).then((data) => { console.log(data) })
   }
 })
 
-app.post("/api/client/addWork",(req,res)=>{
+app.post("/api/admin/reject", (req, res) => {
+  console.log(req.body)
+  console.log(req.user)
+  if (req.body.role == "JOB") {
+    WorkerModel.updateOne(
+      { email: req.body.personEmail },
+      {
+        $set: {
+          applicationStatus: false,
+          requestStatus: false
+        }
+      }
+    ).then((data) => { console.log(data) })
+  }
+  else {
+    clientModel.updateOne(
+      { email: req.body.personEmail },
+      {
+        $set: {
+          applicationStatus: false,
+          requestStatus: false
+        }
+      }
+    ).then((data) => { console.log(data) })
+  }
+})
+
+app.post("/api/client/addWork", (req, res) => {
   // console.log(req.body.profession)
   // console.log(req.user.email)
   console.log("sdad")
-    clientModel.updateOne(
-      { email: req.user.email },
-      {
-        $set: {
-          professionRequired:req.body.profession,
-          jobRequired:req.body.jobDesc,
-          workerRequired:true
-        }
+  clientModel.updateOne(
+    { email: req.user.email },
+    {
+      $set: {
+        professionRequired: req.body.profession,
+        jobRequired: req.body.jobDesc,
+        workerRequired: true
       }
-    ).then((data) => { console.log(data) })
-  
-  
-  res.send({status:"ok"})
+    }
+  ).then((data) => { console.log(data) })
+
+
+  res.send({ status: "ok" })
 })
 
+app.get("/api/client/findWork", (req, res) => {
+  async function findworkquery() {
+    const allWorks = await clientModel.find(
+      { workerRequired: true }
+    );
+    console.log("got the query req for all findWork");
+    res.send(allWorks);
+  }
+  findworkquery();
 
-app.post("/api/admin/reject",(req,res)=>{
-  console.log(req.body)
-  console.log(req.user)
-  if(req.body.role == "JOB"){
-    WorkerModel.updateOne(
-      { email: req.body.personEmail },
-      {
-        $set: {
-          applicationStatus: false,
-          requestStatus:false
-        }
-      }
-    ).then((data) => { console.log(data) })
-  }
-  else{
-    clientModel.updateOne(
-      { email: req.body.personEmail },
-      {
-        $set: {
-          applicationStatus: false,
-          requestStatus:false
-        }
-      }
-    ).then((data) => { console.log(data) })
-  }
 })
 
+app.post("/api/WorkRequestAccepted", async (req, res) => {
+  console.log(req.body.clientEmail)
+  console.log(req.user.email)
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: "dubeyajitesh07@gmail.com",
+      pass: "ostyygulkadbjicg",
+    },
+    tls: {
+      rejectUnauthorized: false,
+    },
+  });
+
+  const mailOptions = {
+    from: "dubeyajitesh07@gmail.com",
+    to:[req.body.clientEmail,req.user.email],
+    // to:"mohdmehdi2003@gmail.com",
+    subject: "You have Connected with a Client/Worker",
+    // text: "You have Connected with a Client/Worker",
+    html: `<b>THANK YOU FOR TRUSTING US</b>,<br/><hr/> <img src="cid:unique@kreata.ee"/> <br/><p>REPLY TO THIS EMAIL FOR ANY QUERIES.</p><p>JOIN this room to negotiate and exchange information : https://whereby.com/mybuddyforyo </p><p>CONNECT VIA</p><p>EMPLOYER Email: ${req.body.clientEmail}</p><p>EMPLOYEE Email: ${req.user.email}</p>`,
+    attachments: [
+      {
+        filename: "thankyou.jpeg",
+        path: "./thankyou.jpeg",
+        cid: "unique@kreata.ee", //same cid value as in the html img src
+      },
+    ],
+  };
+
+  transporter.sendMail(mailOptions, function (error, info) {
+    if (error) {
+      console.log(error);
+      res.json({ status: "notok" });
+    } else {
+      console.log("Email sent: " + info.response);
+      res.json({ status: "ok" });
+    }
+  });
+});
 
 
 app.listen(1337, () => {
