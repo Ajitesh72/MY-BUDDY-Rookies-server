@@ -237,7 +237,7 @@ const upload = multer({ storage: storage });
 app.post("/api/uploadWorkerData", upload.single("file"), (req, res) => {
 
   console.log("user is ", req.user)
-  console.log(JSON.parse(req.body.objectData.name));
+  console.log(JSON.parse(req.body.objectData));
 
   // BELOW CODE IS VERY IMPORTANT
 
@@ -250,8 +250,8 @@ app.post("/api/uploadWorkerData", upload.single("file"), (req, res) => {
       data: fs.readFileSync("uploads/" + req.file.filename),
       contentType: "image/png",
     },
-    name: req.body.objectData.name,
-    applicationStatus: false,
+    name: JSON.parse(req.body.objectData).name,
+    applicationStatus: "false",
 
   });
   worker

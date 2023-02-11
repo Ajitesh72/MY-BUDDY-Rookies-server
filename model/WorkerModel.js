@@ -9,6 +9,7 @@ const WorkerModel = new mongoose.Schema(
 			},
         role:{type:String,required:true},
         applicationStatus:{type:String,required:true},  //i.e it will be accepted by me or mehdi
+		image : { data:Buffer, contentType : String }
 		// quote: { type: String }, //issi db mei user ka information store karte jaayenge...wiating for problem statement
 	},
 	{ collection: 'Worker-data' }
